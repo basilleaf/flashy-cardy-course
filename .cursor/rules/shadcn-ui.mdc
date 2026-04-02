@@ -1,0 +1,42 @@
+---
+alwaysApply: true
+---
+# UI Components
+
+Always use shadcn/ui for UI elements (buttons, inputs, dialogs, cards, etc.). Do not use plain HTML elements or other component libraries for UI.
+
+## Setup
+
+If shadcn/ui is not initialized in the project:
+
+```bash
+npx shadcn@latest init
+```
+
+## Adding Components
+
+If a specific component hasn't been added yet, install it before using it:
+
+```bash
+npx shadcn@latest add <component-name>
+```
+
+Examples:
+
+```bash
+npx shadcn@latest add button
+npx shadcn@latest add card
+npx shadcn@latest add input
+npx shadcn@latest add dialog
+```
+
+Components are installed to `src/components/ui/` and can be imported from there:
+
+```tsx
+// ✅ GOOD
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+// ❌ BAD
+<button className="...">Click me</button>
+```
