@@ -1,0 +1,47 @@
+---
+description: Database interactions must use Drizzle ORM — the schema and db client
+alwaysApply: true
+---
+
+# Database Access with Drizzle
+
+All database interactions must go through the Drizzle `db` client and the typed schema. Never use raw SQL strings or query the database directly.
+
+## Setup
+
+- DB client: `src/lib/db/db.ts` → `import { db } from "@/lib/db/db"`
+- Schema tables: `src/lib/db/schema.ts` → `import { decks, cards } from "@/lib/db/schema"`
+
+## Examples
+
+```typescript
+// ❌ BAD — raw SQL
+const result = await sql`SELECT * FROM decks WHERE clerk_user_id = ${userId}`;
+
+// ✅ GOOD — Drizzle query builder
+import { db } from "@/lib/db/db";
+import { decks } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
+
+const userDecks = await db.select().from(decks).where(eq(decks.clerkUserId, userId));
+```
+
+```typescript
+// ✅ GOOD — insert
+await db.insert(cards).values({ deckId, front, back });
+
+// ✅ GOOD — update
+await db.update(decks).set({ title }).where(eq(decks.id, deckId));
+
+// ✅ GOOD — delete
+await db.delete(cards).where(eq(cards.id, cardId));
+```
+
+## Schema Changes
+
+To add tables or columns, edit `src/lib/db/schema.ts` and generate a migration:
+
+```bash
+npx drizzle-kit generate
+npx drizzle-kit migrate
+```

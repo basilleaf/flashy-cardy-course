@@ -1,0 +1,63 @@
+---
+description: Clerk auth and data access security — users must only access their own data
+alwaysApply: true
+---
+
+# Auth & Data Access Security
+
+All auth is handled by Clerk. Every server-side operation that touches the database **must** verify the current user and scope queries to their data.
+
+## Getting the Current User
+
+```typescript
+import { auth } from "@clerk/nextjs/server";
+
+const { userId } = await auth();
+if (!userId) throw new Error("Unauthorized"); // or redirect to sign-in
+```
+
+## Scoping Queries to the Current User
+
+Always filter by `clerkUserId` when reading or mutating decks. Never trust IDs from client input alone.
+
+```typescript
+// ❌ BAD — fetches any deck by ID, no ownership check
+const deck = await db.select().from(decks).where(eq(decks.id, deckId));
+
+// ✅ GOOD — scoped to the authenticated user
+const { userId } = await auth();
+if (!userId) throw new Error("Unauthorized");
+
+const deck = await db
+  .select()
+  .from(decks)
+  .where(and(eq(decks.id, deckId), eq(decks.clerkUserId, userId)));
+
+if (!deck.length) throw new Error("Not found"); // treat as not found, not forbidden
+```
+
+## Cards Are Owned Transitively via Decks
+
+Cards don't have a `clerkUserId` — join through `decks` to verify ownership:
+
+```typescript
+// ✅ GOOD — verify deck ownership before operating on its cards
+const { userId } = await auth();
+if (!userId) throw new Error("Unauthorized");
+
+const [deck] = await db
+  .select()
+  .from(decks)
+  .where(and(eq(decks.id, deckId), eq(decks.clerkUserId, userId)));
+
+if (!deck) throw new Error("Not found");
+
+// safe to read/write cards for this deck
+```
+
+## Rules
+
+- Always call `auth()` at the top of every server action or route handler
+- Never skip the `clerkUserId` filter on `decks` queries
+- Treat unauthorized access as "not found" (don't leak existence of other users' data)
+- Never use a `deckId` or `cardId` from the client without verifying ownership first

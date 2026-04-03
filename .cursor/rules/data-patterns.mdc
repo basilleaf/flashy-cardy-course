@@ -1,0 +1,69 @@
+---
+description: Data fetching, mutation, and validation patterns
+alwaysApply: true
+---
+
+# Data Patterns
+
+## Fetching — Server Components Only
+
+All data reads must happen in async server components. Never fetch from client components.
+
+```tsx
+// ❌ BAD — client-side fetch
+"use client";
+useEffect(() => {
+  fetch("/api/decks").then(...);
+}, []);
+
+// ✅ GOOD — server component
+export default async function DecksPage() {
+  const { userId } = await auth();
+  const decks = await db.select().from(decks).where(eq(decks.clerkUserId, userId));
+  return <DeckList decks={decks} />;
+}
+```
+
+## Mutations — Server Actions Only
+
+All inserts, updates, and deletes must go through server actions (never API routes or client-side fetches).
+
+```ts
+// ✅ GOOD — server action in a dedicated file
+"use server";
+
+export async function createDeck(input: CreateDeckInput) { ... }
+```
+
+## Validation — Zod Required
+
+Every server action must validate its input with Zod before touching the database.
+
+```ts
+// ❌ BAD — no validation, FormData type
+export async function createDeck(data: FormData) {
+  await db.insert(decks).values({ title: data.get("title") as string });
+}
+
+// ✅ GOOD — typed input, Zod validation
+import { z } from "zod";
+ı
+const createDeckSchema = z.object({
+  title: z.string().min(1).max(100),
+});
+
+type CreateDeckInput = z.infer<typeof createDeckSchema>;
+
+export async function createDeck(input: CreateDeckInput) {
+  const validated = createDeckSchema.parse(input);
+  await db.insert(decks).values({ title: validated.title, clerkUserId: userId });
+}
+```
+
+## Rules
+
+- Server components fetch data — no `useEffect`, no `fetch()` in client components
+- Server actions mutate data — no `/api/` routes for DB writes
+- Always define a TypeScript type for server action inputs (use `z.infer<typeof schema>`)
+- Never use `FormData` as a server action parameter type
+- Always call `auth()` and validate ownership before any mutation (see clerk-auth rule)
