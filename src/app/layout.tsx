@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
+import { ClerkProvider, Show, UserButton } from "@clerk/nextjs";
+import { dark } from "@clerk/themes";
+import { SignInDialog, SignUpDialog } from "@/components/auth-dialogs";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -23,7 +26,22 @@ export default function RootLayout({
       lang="en"
       className={`${poppins.variable} dark h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <ClerkProvider appearance={{ theme: dark }}>
+          <header className="flex items-center justify-end px-4 py-3">
+            <Show when="signed-out">
+              <div className="flex items-center gap-2">
+                <SignInDialog />
+                <SignUpDialog />
+              </div>
+            </Show>
+            <Show when="signed-in">
+              <UserButton />
+            </Show>
+          </header>
+          {children}
+        </ClerkProvider>
+      </body>
     </html>
   );
 }
