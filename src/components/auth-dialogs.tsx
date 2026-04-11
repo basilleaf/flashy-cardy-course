@@ -16,7 +16,7 @@ export function SignInDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={<Button variant="ghost" />}>Sign in</DialogTrigger>
       <DialogContent className="p-0 max-w-fit overflow-hidden">
-        <SignIn routing="hash" />
+        <SignIn routing="hash" forceRedirectUrl="/dashboard" />
       </DialogContent>
     </Dialog>
   );
@@ -29,7 +29,7 @@ export function SignUpDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={<Button variant="default" />}>Sign up</DialogTrigger>
       <DialogContent className="p-0 max-w-fit overflow-hidden">
-        <SignUp routing="hash" />
+        <SignUp routing="hash" forceRedirectUrl="/dashboard" />
       </DialogContent>
     </Dialog>
   );
