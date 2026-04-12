@@ -36,7 +36,7 @@ export default async function DashboardPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {userDecks.map((deck) => (
-            <Link key={deck.id} href={`/dashboard/decks/${deck.id}`}>
+            <Link key={deck.id} href={`/decks/${deck.id}`}>
               <Card className="hover:border-zinc-600 transition-colors cursor-pointer h-full">
                 <CardHeader>
                   <CardTitle className="text-lg">{deck.title}</CardTitle>
