@@ -1,8 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { db } from "@/lib/db/db";
-import { decks } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { getDecksByUser } from "@/lib/db/queries/decks";
 import {
   Card,
   CardContent,
@@ -17,10 +15,7 @@ export default async function DashboardPage() {
   const { userId } = await auth();
   if (!userId) redirect("/");
 
-  const userDecks = await db
-    .select()
-    .from(decks)
-    .where(eq(decks.clerkUserId, userId));
+  const userDecks = await getDecksByUser(userId);
 
   return (
     <main className="flex flex-1 flex-col gap-8 px-6 py-8 max-w-5xl mx-auto w-full">

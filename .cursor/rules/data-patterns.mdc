@@ -5,9 +5,50 @@ alwaysApply: true
 
 # Data Patterns
 
+## Query Helpers — `src/lib/db/queries/`
+
+All database reads and writes must go through helper functions defined in `src/lib/db/queries/`. Never call the `db` client directly from server components or server actions.
+
+Organize query files by domain (e.g. `decks.ts`, `cards.ts`):
+
+```
+src/lib/db/queries/
+  decks.ts   ← all deck reads and writes
+  cards.ts   ← all card reads and writes
+```
+
+Each helper is a plain async function that accepts typed inputs and handles auth scoping internally:
+
+```ts
+// src/lib/db/queries/decks.ts
+import { db } from "@/lib/db/db";
+import { decks } from "@/lib/db/schema";
+import { eq, and } from "drizzle-orm";
+
+export async function getDecksByUser(userId: string) {
+  return db.select().from(decks).where(eq(decks.clerkUserId, userId));
+}
+
+export async function getDeckById(deckId: string, userId: string) {
+  const [deck] = await db
+    .select()
+    .from(decks)
+    .where(and(eq(decks.id, deckId), eq(decks.clerkUserId, userId)));
+  return deck ?? null;
+}
+
+export async function createDeck(title: string, userId: string) {
+  const [deck] = await db
+    .insert(decks)
+    .values({ title, clerkUserId: userId })
+    .returning();
+  return deck;
+}
+```
+
 ## Fetching — Server Components Only
 
-All data reads must happen in async server components. Never fetch from client components.
+All data reads must happen in async server components via query helpers. Never fetch from client components.
 
 ```tsx
 // ❌ BAD — client-side fetch
@@ -16,54 +57,79 @@ useEffect(() => {
   fetch("/api/decks").then(...);
 }, []);
 
-// ✅ GOOD — server component
+// ❌ BAD — db client used directly in a server component
 export default async function DecksPage() {
   const { userId } = await auth();
   const decks = await db.select().from(decks).where(eq(decks.clerkUserId, userId));
+  return <DeckList decks={decks} />;
+}
+
+// ✅ GOOD — server component calls a query helper
+import { getDecksByUser } from "@/lib/db/queries/decks";
+
+export default async function DecksPage() {
+  const { userId } = await auth();
+  if (!userId) redirect("/sign-in");
+  const decks = await getDecksByUser(userId);
   return <DeckList decks={decks} />;
 }
 ```
 
 ## Mutations — Server Actions Only
 
-All inserts, updates, and deletes must go through server actions (never API routes or client-side fetches).
+All inserts, updates, and deletes must go through server actions that call query helpers. Never use API routes or client-side fetches for DB writes.
 
 ```ts
-// ✅ GOOD — server action in a dedicated file
+// ❌ BAD — db client used directly in a server action
 "use server";
+export async function createDeck(input: CreateDeckInput) {
+  await db.insert(decks).values({ title: input.title, clerkUserId: userId });
+}
 
-export async function createDeck(input: CreateDeckInput) { ... }
+// ✅ GOOD — server action delegates to a query helper
+"use server";
+import { createDeck } from "@/lib/db/queries/decks";
+
+export async function createDeckAction(input: CreateDeckInput) {
+  const validated = createDeckSchema.parse(input);
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+  return createDeck(validated.title, userId);
+}
 ```
 
 ## Validation — Zod Required
 
-Every server action must validate its input with Zod before touching the database.
+Every server action must validate its input with Zod before calling a query helper.
 
 ```ts
 // ❌ BAD — no validation, FormData type
-export async function createDeck(data: FormData) {
-  await db.insert(decks).values({ title: data.get("title") as string });
+export async function createDeckAction(data: FormData) {
+  await createDeck(data.get("title") as string, userId);
 }
 
 // ✅ GOOD — typed input, Zod validation
 import { z } from "zod";
-ı
+
 const createDeckSchema = z.object({
   title: z.string().min(1).max(100),
 });
 
 type CreateDeckInput = z.infer<typeof createDeckSchema>;
 
-export async function createDeck(input: CreateDeckInput) {
+export async function createDeckAction(input: CreateDeckInput) {
   const validated = createDeckSchema.parse(input);
-  await db.insert(decks).values({ title: validated.title, clerkUserId: userId });
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+  return createDeck(validated.title, userId);
 }
 ```
 
 ## Rules
 
-- Server components fetch data — no `useEffect`, no `fetch()` in client components
-- Server actions mutate data — no `/api/` routes for DB writes
+- All `db` calls live in `src/lib/db/queries/` — never call `db` directly from components or actions
+- Server components fetch data via query helpers — no `useEffect`, no `fetch()` in client components
+- Server actions mutate data via query helpers — no `/api/` routes for DB writes
 - Always define a TypeScript type for server action inputs (use `z.infer<typeof schema>`)
 - Never use `FormData` as a server action parameter type
 - Always call `auth()` and validate ownership before any mutation (see clerk-auth rule)
