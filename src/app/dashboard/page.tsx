@@ -46,10 +46,11 @@ export default async function DashboardPage() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-xs text-zinc-500">
-                    Created {new Date(deck.createdAt).toLocaleDateString()}
+                    Updated {new Date(deck.updatedAt).toLocaleDateString()}
                   </p>
                 </CardContent>
               </Card>
+         
             </Link>
           ))}
         </div>
