@@ -1,6 +1,6 @@
 import { db } from "@/lib/db/db";
 import { cards, decks } from "@/lib/db/schema";
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 
 async function verifyDeckOwnership(deckId: number, userId: string) {
   const [deck] = await db
@@ -14,7 +14,11 @@ export async function getCardsByDeck(deckId: number, userId: string) {
   const deck = await verifyDeckOwnership(deckId, userId);
   if (!deck) return null;
 
-  return db.select().from(cards).where(eq(cards.deckId, deckId));
+  return db
+    .select()
+    .from(cards)
+    .where(eq(cards.deckId, deckId))
+    .orderBy(desc(cards.updatedAt), desc(cards.createdAt));
 }
 
 export async function getCardById(cardId: number, userId: string) {
