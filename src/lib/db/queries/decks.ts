@@ -29,7 +29,7 @@ export async function createDeck(
 export async function updateDeck(
   deckId: number,
   userId: string,
-  values: { title?: string; description?: string },
+  values: { title?: string; description?: string | null },
 ) {
   const [deck] = await db
     .update(decks)

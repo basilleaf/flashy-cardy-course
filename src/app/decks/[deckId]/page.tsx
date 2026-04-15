@@ -6,6 +6,7 @@ import { getCardsByDeck } from "@/lib/db/queries/cards";
 import { Button } from "@/components/ui/button";
 import { AddCardButton } from "@/components/add-card-button";
 import { CardItem } from "@/components/card-item";
+import { EditDeckDialog } from "@/components/edit-deck-dialog";
 
 export default async function DeckPage({
   params,
@@ -44,7 +45,13 @@ export default async function DeckPage({
           </p>
         </div>
         <div className="flex gap-2 shrink-0">
-          <Button variant="outline">Edit Deck</Button>
+          <EditDeckDialog
+            deckId={id}
+            title={deck.title}
+            description={deck.description}
+          >
+            <Button variant="outline">Edit Deck</Button>
+          </EditDeckDialog>
           <AddCardButton deckId={id} />
         </div>
       </div>
