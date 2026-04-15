@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -51,10 +52,12 @@ export function CardFormDialog({ deckId, card, children }: Props) {
       try {
         if (isEdit) {
           await updateCardAction(deckId, card.id, { front, back });
+          toast.success("Card updated");
         } else {
           await createCardAction(deckId, { front, back });
           setFront("");
           setBack("");
+          toast.success("Card added");
         }
         setOpen(false);
       } catch {

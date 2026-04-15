@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import { ClerkProvider, Show, UserButton } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
+import { ThemeProvider } from "next-themes";
 import { SignInDialog, SignUpDialog } from "@/components/auth-dialogs";
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -28,18 +30,26 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <ClerkProvider appearance={{ theme: dark }}>
-          <header className="flex items-center justify-end px-4 py-3">
-            <Show when="signed-out">
-              <div className="flex items-center gap-2">
-                <SignInDialog />
-                <SignUpDialog />
-              </div>
-            </Show>
-            <Show when="signed-in">
-              <UserButton />
-            </Show>
-          </header>
-          {children}
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem={false}
+            disableTransitionOnChange
+          >
+            <header className="flex items-center justify-end px-4 py-3">
+              <Show when="signed-out">
+                <div className="flex items-center gap-2">
+                  <SignInDialog />
+                  <SignUpDialog />
+                </div>
+              </Show>
+              <Show when="signed-in">
+                <UserButton />
+              </Show>
+            </header>
+            {children}
+            <Toaster position="bottom-right" richColors closeButton />
+          </ThemeProvider>
         </ClerkProvider>
       </body>
     </html>

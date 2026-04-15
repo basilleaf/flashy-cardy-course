@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { toast } from "sonner";
 import { Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,8 +38,13 @@ export function CardItem({ deckId, card }: Props) {
 
   function handleDelete() {
     startTransition(async () => {
-      await deleteCardAction(deckId, card.id);
-      setDeleteOpen(false);
+      try {
+        await deleteCardAction(deckId, card.id);
+        setDeleteOpen(false);
+        toast.success("Card deleted");
+      } catch {
+        toast.error("Could not delete card. Please try again.");
+      }
     });
   }
 
