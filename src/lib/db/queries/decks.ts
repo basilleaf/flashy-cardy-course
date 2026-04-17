@@ -17,7 +17,7 @@ export async function getDeckById(deckId: number, userId: string) {
 export async function createDeck(
   userId: string,
   title: string,
-  description?: string,
+  description: string | null = null,
 ) {
   const [deck] = await db
     .insert(decks)

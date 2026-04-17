@@ -1,8 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { CardFormDialog } from "@/components/card-form-dialog";
-import React from "react";
+import { CardFormDialog } from "./CardFormDialog";
 
 export function AddCardButton({ deckId }: { deckId: number }) {
   return (

@@ -1,7 +1,8 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { Show } from "@clerk/nextjs";
-import { SignInDialog, SignUpDialog } from "@/components/auth-dialogs";
+import { SignInDialog } from "@/components/SignInDialog";
+import { SignUpDialog } from "@/components/SignUpDialog";
 
 export default async function Home() {
   const { userId } = await auth();

@@ -4,9 +4,9 @@ import Link from "next/link";
 import { getDeckById } from "@/lib/db/queries/decks";
 import { getCardsByDeck } from "@/lib/db/queries/cards";
 import { Button } from "@/components/ui/button";
-import { AddCardButton } from "@/components/add-card-button";
-import { CardItem } from "@/components/card-item";
-import { EditDeckDialog } from "@/components/edit-deck-dialog";
+import { AddCardButton } from "./components/AddCardButton";
+import { CardItem } from "./components/CardItem";
+import { EditDeckDialog } from "./components/EditDeckDialog";
 
 export default async function DeckPage({
   params,

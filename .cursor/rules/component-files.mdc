@@ -1,0 +1,34 @@
+---
+description: PascalCase component filenames, route-local vs shared colocation, shadcn ui exception
+alwaysApply: true
+---
+
+# Component files and colocation
+
+## File name matches the default export
+
+- The **file name** must match the **primary React component** (PascalCase) one-to-one: `CreateDeckDialog` → `CreateDeckDialog.tsx`.
+- Prefer **one main component per file**; avoid bundling unrelated components in the same module.
+
+## Where files live
+
+- **Route-local** — used only under one route (or its children) and not as a generic building block: colocate under that route’s **`components/`** folder.
+  - Example: `CreateDeckDialog` is only used on `/dashboard` → `src/app/dashboard/components/CreateDeckDialog.tsx`.
+  - Example: deck detail UI only used under `/decks/[deckId]` → `src/app/decks/[deckId]/components/…`.
+  - Example: study UI only under `/decks/[deckId]/study` → `src/app/decks/[deckId]/study/components/…`.
+- **App-wide shared** — imported from **multiple** routes, root `layout.tsx`, or other cross-cutting entry points: put under **`src/components/`** (still PascalCase), e.g. `SignInDialog.tsx` when used from both `/` and the global header.
+
+Prefer **colocation** until reuse is real; don’t hoist to `src/components/` prematurely.
+
+## Exception: shadcn `ui/`
+
+- Files under **`src/components/ui/`** follow **shadcn CLI conventions** (lowercase: `button.tsx`, `card.tsx`). Do **not** rename them to PascalCase; keep imports like `@/components/ui/button`.
+
+## Quick check
+
+```text
+✅ src/app/dashboard/components/CreateDeckDialog.tsx  → export function CreateDeckDialog
+✅ src/components/SignInDialog.tsx                    → export function SignInDialog (shared)
+✅ src/components/ui/button.tsx                       → shadcn; lowercase OK
+❌ create-deck-dialog.tsx                             → use CreateDeckDialog.tsx
+```

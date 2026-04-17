@@ -18,7 +18,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { CardFormDialog } from "@/components/card-form-dialog";
+import { CardFormDialog } from "./CardFormDialog";
 import { deleteCardAction } from "@/app/actions/cards";
 
 type CardData = {

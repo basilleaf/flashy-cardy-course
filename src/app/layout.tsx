@@ -3,7 +3,8 @@ import { Poppins } from "next/font/google";
 import { ClerkProvider, Show, UserButton } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
 import { ThemeProvider } from "next-themes";
-import { SignInDialog, SignUpDialog } from "@/components/auth-dialogs";
+import { SignInDialog } from "@/components/SignInDialog";
+import { SignUpDialog } from "@/components/SignUpDialog";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
@@ -27,6 +28,7 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${poppins.variable} dark h-full antialiased`}
+      suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
         <ClerkProvider appearance={{ theme: dark }}>
