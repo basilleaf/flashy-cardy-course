@@ -40,7 +40,9 @@ export async function updateDeck(
 }
 
 export async function deleteDeck(deckId: number, userId: string) {
-  await db
+  const deleted = await db
     .delete(decks)
-    .where(and(eq(decks.id, deckId), eq(decks.clerkUserId, userId)));
+    .where(and(eq(decks.id, deckId), eq(decks.clerkUserId, userId)))
+    .returning({ id: decks.id });
+  return deleted.length > 0;
 }

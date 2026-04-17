@@ -6,6 +6,7 @@ import { getCardsByDeck } from "@/lib/db/queries/cards";
 import { Button } from "@/components/ui/button";
 import { AddCardButton } from "./components/AddCardButton";
 import { CardItem } from "./components/CardItem";
+import { DeleteDeckDialog } from "./components/DeleteDeckDialog";
 import { EditDeckDialog } from "./components/EditDeckDialog";
 
 export default async function DeckPage({
@@ -44,7 +45,7 @@ export default async function DeckPage({
             {cards?.length ?? 0} card{cards?.length !== 1 ? "s" : ""}
           </p>
         </div>
-        <div className="flex gap-2 shrink-0">
+        <div className="flex flex-wrap gap-2 shrink-0 justify-end">
           <EditDeckDialog
             deckId={id}
             title={deck.title}
@@ -52,6 +53,13 @@ export default async function DeckPage({
           >
             <Button variant="outline">Edit Deck</Button>
           </EditDeckDialog>
+          <DeleteDeckDialog
+            deckId={id}
+            title={deck.title}
+            cardCount={cards?.length ?? 0}
+          >
+            <Button variant="destructive">Delete Deck</Button>
+          </DeleteDeckDialog>
           <AddCardButton deckId={id} />
         </div>
       </div>
