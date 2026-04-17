@@ -25,6 +25,7 @@ export async function createCardAction(deckId: number, input: CardInput) {
   if (!card) throw new Error("Deck not found");
 
   revalidatePath(`/decks/${deckId}`);
+  revalidatePath(`/study/${deckId}`);
   return card;
 }
 
@@ -43,6 +44,7 @@ export async function updateCardAction(
   if (!card) throw new Error("Card not found");
 
   revalidatePath(`/decks/${deckId}`);
+  revalidatePath(`/study/${deckId}`);
   return card;
 }
 
@@ -54,4 +56,5 @@ export async function deleteCardAction(deckId: number, cardId: number) {
   await deleteCard(validatedCardId, userId);
 
   revalidatePath(`/decks/${deckId}`);
+  revalidatePath(`/study/${deckId}`);
 }

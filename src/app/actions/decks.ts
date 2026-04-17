@@ -45,5 +45,6 @@ export async function updateDeckAction(deckId: number, input: UpdateDeckInput) {
 
   revalidatePath("/dashboard");
   revalidatePath(`/decks/${deckId}`);
+  revalidatePath(`/study/${deckId}`);
   return deck;
 }

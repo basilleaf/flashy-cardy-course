@@ -15,7 +15,7 @@ alwaysApply: true
 - **Route-local** — used only under one route (or its children) and not as a generic building block: colocate under that route’s **`components/`** folder.
   - Example: `CreateDeckDialog` is only used on `/dashboard` → `src/app/dashboard/components/CreateDeckDialog.tsx`.
   - Example: deck detail UI only used under `/decks/[deckId]` → `src/app/decks/[deckId]/components/…`.
-  - Example: study UI only under `/decks/[deckId]/study` → `src/app/decks/[deckId]/study/components/…`.
+  - Example: study UI only under `/study/[deckId]` → `src/app/study/[deckId]/components/…`.
 - **App-wide shared** — imported from **multiple** routes, root `layout.tsx`, or other cross-cutting entry points: put under **`src/components/`** (still PascalCase), e.g. `SignInDialog.tsx` when used from both `/` and the global header.
 
 Prefer **colocation** until reuse is real; don’t hoist to `src/components/` prematurely.

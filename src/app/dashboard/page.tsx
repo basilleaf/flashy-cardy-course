@@ -65,7 +65,7 @@ export default async function DashboardPage() {
                   Updated {new Date(deck.updatedAt).toLocaleDateString()}
                 </p>
                 <Link
-                  href={`/decks/${deck.id}/study`}
+                  href={`/study/${deck.id}`}
                   className={cn(buttonVariants(), "w-full")}
                 >
                   Start study
