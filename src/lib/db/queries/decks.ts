@@ -1,9 +1,17 @@
 import { db } from "@/lib/db/db";
 import { decks } from "@/lib/db/schema";
-import { and, eq } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 
 export async function getDecksByUser(userId: string) {
   return db.select().from(decks).where(eq(decks.clerkUserId, userId));
+}
+
+export async function countDecksByUser(userId: string) {
+  const [row] = await db
+    .select({ count: count() })
+    .from(decks)
+    .where(eq(decks.clerkUserId, userId));
+  return Number(row?.count ?? 0);
 }
 
 export async function getDeckById(deckId: number, userId: string) {

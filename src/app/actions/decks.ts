@@ -3,7 +3,13 @@
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { createDeck, deleteDeck, updateDeck } from "@/lib/db/queries/decks";
+import {
+  countDecksByUser,
+  createDeck,
+  deleteDeck,
+  updateDeck,
+} from "@/lib/db/queries/decks";
+import { FREE_PLAN_DECK_LIMIT } from "@/lib/deck-limits";
 
 const deckFormSchema = z.object({
   title: z.string().min(1, "Title is required").max(255),
@@ -14,11 +20,18 @@ type CreateDeckInput = z.infer<typeof deckFormSchema>;
 type UpdateDeckInput = z.infer<typeof deckFormSchema>;
 
 export async function createDeckAction(input: CreateDeckInput) {
-  const { userId } = await auth();
+  const { userId, has } = await auth();
   if (!userId) throw new Error("Unauthorized");
 
   const validated = deckFormSchema.parse(input);
   const trimmedDesc = validated.description.trim();
+
+  if (!has({ feature: "unlimited_decks" })) {
+    const deckCount = await countDecksByUser(userId);
+    if (deckCount >= FREE_PLAN_DECK_LIMIT) {
+      throw new Error("DECK_LIMIT_REACHED");
+    }
+  }
 
   const deck = await createDeck(
     userId,

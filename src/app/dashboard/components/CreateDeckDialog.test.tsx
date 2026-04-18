@@ -97,6 +97,21 @@ describe("CreateDeckDialog", () => {
     expect(mockPush).not.toHaveBeenCalled();
   });
 
+  it("disables creation and shows upgrade when canCreateDeck is false", () => {
+    render(
+      <CreateDeckDialog canCreateDeck={false}>
+        <button type="button">Add deck</button>
+      </CreateDeckDialog>,
+    );
+
+    expect(screen.getByRole("button", { name: /add deck/i })).toBeDisabled();
+    expect(screen.getByRole("link", { name: /^upgrade$/i })).toHaveAttribute(
+      "href",
+      "/pricing",
+    );
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
   it("clears fields when the dialog is closed", async () => {
     const { user } = renderDialog();
     await openDialog(user);

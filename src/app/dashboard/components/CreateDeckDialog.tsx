@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { cloneElement, isValidElement, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,12 +15,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { createDeckAction } from "@/app/actions/decks";
+import { buttonVariants } from "@/components/ui/button-variants";
+import { cn } from "@/lib/utils";
 
 type Props = {
   children: React.ReactNode;
+  /** When false, creation is blocked (e.g. free plan deck limit). */
+  canCreateDeck?: boolean;
 };
 
-export function CreateDeckDialog({ children }: Props) {
+export function CreateDeckDialog({
+  children,
+  canCreateDeck = true,
+}: Props) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -47,17 +55,42 @@ export function CreateDeckDialog({ children }: Props) {
         setTitle("");
         setDescription("");
         router.push(`/decks/${deck.id}`);
-      } catch {
-        setError("Something went wrong. Please try again.");
+      } catch (err) {
+        if (err instanceof Error && err.message === "DECK_LIMIT_REACHED") {
+          setError(
+            "You've reached the free plan deck limit. Upgrade to create more.",
+          );
+        } else {
+          setError("Something went wrong. Please try again.");
+        }
       }
     });
   }
 
+  const trigger = canCreateDeck ? (
+    <span className="contents" onClick={() => setOpen(true)}>
+      {children}
+    </span>
+  ) : (
+    <span className="inline-flex flex-wrap items-center justify-end gap-2">
+      {isValidElement(children)
+        ? cloneElement(children, { disabled: true } as Record<string, unknown>)
+        : children}
+      <Link
+        href="/pricing"
+        className={cn(
+          buttonVariants({ variant: "link", size: "sm" }),
+          "h-auto px-0 text-zinc-300 underline-offset-4 hover:text-zinc-100",
+        )}
+      >
+        Upgrade
+      </Link>
+    </span>
+  );
+
   return (
     <>
-      <span className="contents" onClick={() => setOpen(true)}>
-        {children}
-      </span>
+      {trigger}
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>

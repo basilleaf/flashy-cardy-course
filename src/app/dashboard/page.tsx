@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { getDecksByUser } from "@/lib/db/queries/decks";
+import { FREE_PLAN_DECK_LIMIT } from "@/lib/deck-limits";
 import {
   Card,
   CardContent,
@@ -15,10 +16,13 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 
 export default async function DashboardPage() {
-  const { userId } = await auth();
+  const { userId, has } = await auth();
   if (!userId) redirect("/");
 
   const userDecks = await getDecksByUser(userId);
+  const canCreateDeck =
+    has({ feature: "unlimited_decks" }) ||
+    userDecks.length < FREE_PLAN_DECK_LIMIT;
 
   return (
     <main className="flex flex-1 flex-col gap-8 px-6 py-8 max-w-5xl mx-auto w-full">
@@ -26,8 +30,14 @@ export default async function DashboardPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Your Decks</h1>
           <p className="text-zinc-400 mt-1">Manage and study your flashcard decks</p>
+          {!canCreateDeck && (
+            <p className="text-sm text-amber-500/90 mt-2 max-w-md">
+              Free plan includes up to {FREE_PLAN_DECK_LIMIT} decks. Upgrade to add
+              more.
+            </p>
+          )}
         </div>
-        <CreateDeckDialog>
+        <CreateDeckDialog canCreateDeck={canCreateDeck}>
           <Button>New Deck</Button>
         </CreateDeckDialog>
       </div>
@@ -36,7 +46,7 @@ export default async function DashboardPage() {
         <div className="flex flex-1 flex-col items-center justify-center gap-4 py-20 text-center">
           <p className="text-lg font-medium text-zinc-300">No decks yet</p>
           <p className="text-sm text-zinc-500">Create your first deck to get started</p>
-          <CreateDeckDialog>
+          <CreateDeckDialog canCreateDeck={canCreateDeck}>
             <Button>Create a Deck</Button>
           </CreateDeckDialog>
         </div>

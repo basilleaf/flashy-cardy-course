@@ -1,7 +1,12 @@
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { ZodError } from "zod";
-import { createDeck, deleteDeck, updateDeck } from "@/lib/db/queries/decks";
+import {
+  countDecksByUser,
+  createDeck,
+  deleteDeck,
+  updateDeck,
+} from "@/lib/db/queries/decks";
 import {
   createDeckAction,
   deleteDeckAction,
@@ -15,8 +20,19 @@ vi.mock("@/lib/db/queries/decks");
 const mockAuth = vi.mocked(auth);
 const mockRevalidate = vi.mocked(revalidatePath);
 const mockCreateDeck = vi.mocked(createDeck);
+const mockCountDecksByUser = vi.mocked(countDecksByUser);
 const mockUpdateDeck = vi.mocked(updateDeck);
 const mockDeleteDeck = vi.mocked(deleteDeck);
+
+function mockAuthWithUser(userId: string, hasUnlimited = true) {
+  mockAuth.mockResolvedValue({
+    userId,
+    has: vi.fn().mockImplementation((check: { feature?: string }) => {
+      if (check.feature === "unlimited_decks") return hasUnlimited;
+      return false;
+    }),
+  } as never);
+}
 
 describe("createDeckAction", () => {
   beforeEach(() => {
@@ -33,7 +49,7 @@ describe("createDeckAction", () => {
   });
 
   it("rejects invalid input with ZodError", async () => {
-    mockAuth.mockResolvedValue({ userId: "user_1" } as never);
+    mockAuthWithUser("user_1");
 
     await expect(
       createDeckAction({ title: "", description: "" }),
@@ -42,7 +58,7 @@ describe("createDeckAction", () => {
   });
 
   it("passes null description when description is only whitespace", async () => {
-    mockAuth.mockResolvedValue({ userId: "user_1" } as never);
+    mockAuthWithUser("user_1");
     const deck = {
       id: 1,
       clerkUserId: "user_1",
@@ -59,7 +75,7 @@ describe("createDeckAction", () => {
   });
 
   it("creates a deck, revalidates the dashboard, and returns the deck", async () => {
-    mockAuth.mockResolvedValue({ userId: "user_1" } as never);
+    mockAuthWithUser("user_1");
     const deck = {
       id: 2,
       clerkUserId: "user_1",
@@ -79,6 +95,55 @@ describe("createDeckAction", () => {
     expect(mockRevalidate).toHaveBeenCalledTimes(1);
     expect(mockRevalidate).toHaveBeenCalledWith("/dashboard");
     expect(result).toEqual(deck);
+  });
+
+  it("throws when free-plan deck limit is reached", async () => {
+    mockAuthWithUser("user_1", false);
+    mockCountDecksByUser.mockResolvedValue(3);
+
+    await expect(
+      createDeckAction({ title: "T", description: "" }),
+    ).rejects.toThrow("DECK_LIMIT_REACHED");
+
+    expect(mockCountDecksByUser).toHaveBeenCalledWith("user_1");
+    expect(mockCreateDeck).not.toHaveBeenCalled();
+  });
+
+  it("creates a deck when under the free-plan limit without unlimited_decks", async () => {
+    mockAuthWithUser("user_1", false);
+    mockCountDecksByUser.mockResolvedValue(2);
+    const deck = {
+      id: 4,
+      clerkUserId: "user_1",
+      title: "Title",
+      description: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    mockCreateDeck.mockResolvedValue(deck);
+
+    const result = await createDeckAction({ title: "Title", description: "" });
+
+    expect(mockCountDecksByUser).toHaveBeenCalledWith("user_1");
+    expect(mockCreateDeck).toHaveBeenCalled();
+    expect(result).toEqual(deck);
+  });
+
+  it("skips deck count when unlimited_decks is enabled", async () => {
+    mockAuthWithUser("user_1", true);
+    const deck = {
+      id: 5,
+      clerkUserId: "user_1",
+      title: "Title",
+      description: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    mockCreateDeck.mockResolvedValue(deck);
+
+    await createDeckAction({ title: "Title", description: "" });
+
+    expect(mockCountDecksByUser).not.toHaveBeenCalled();
   });
 });
 
