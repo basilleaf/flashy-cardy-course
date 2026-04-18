@@ -1,0 +1,48 @@
+---
+alwaysApply: true
+---
+
+# Clerk Billing
+
+**Clerk Billing (B2C)** handles subscriptions and payments; configure [plans](https://dashboard.clerk.com/~/billing/plans) in the dashboard. Stripe is for processing only. APIs may change — [pin](https://clerk.com/docs/pinning.md) `@clerk/nextjs` and `clerk-js`.
+
+**Plans:** `free_user` (default), `pro`.
+
+**Features:** `3_deck_limit`, `unlimited_decks`, `ai_flashcard_generation`. Prefer **feature** checks for limits and AI; use **plan** when gating whole surfaces by tier.
+
+## Server — `has()` on `auth()`
+
+```typescript
+import { auth } from "@clerk/nextjs/server";
+
+const { has } = await auth();
+if (!has({ feature: "unlimited_decks" })) {
+  /* ... */
+}
+if (!has({ plan: "pro" })) {
+  /* ... */
+}
+```
+
+Use in server components, route handlers, and server actions. See [Clerk `has()`](https://clerk.com/docs/reference/backend/types/auth-object.md#has).
+
+## Client — `<Show>`
+
+```tsx
+import { Show } from "@clerk/nextjs";
+
+<Show
+  when={{ feature: "ai_flashcard_generation" }}
+  fallback={<p>Upgrade for AI.</p>}
+>
+  <AiGenerateButton />
+</Show>;
+```
+
+See [`<Show>`](https://clerk.com/docs/nextjs/reference/components/control/show.md).
+
+## Pricing
+
+Use a dedicated page with [`<PricingTable />`](https://clerk.com/docs/nextjs/reference/components/billing/pricing-table.md) from `@clerk/nextjs`.
+
+**Dashboard:** Enable Billing; **Plans for Users** for B2C. Dev: Clerk test gateway. Prod: separate Stripe account (not the dev instance’s).
