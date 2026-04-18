@@ -1,0 +1,35 @@
+---
+description: When and how to run Vitest after code changes
+alwaysApply: true
+---
+
+# When to run tests
+
+After edits that can change runtime behavior, **run tests or fix failures** before finishing the task. That includes:
+
+- React components
+- Server actions
+- Database / query code (`src/lib/db`, query helpers)
+- Shared `src/lib` utilities
+- Vitest files (`.test.ts`, `.test.tsx`, etc.)
+
+## Scope: smallest useful first
+
+1. Prefer the **narrowest** run: the test file next to the code you changed, or `npx vitest run` with a path or pattern that matches only those tests.
+2. Run **`npm run test`** (full Vitest suite) before considering the task done when you touched **multiple areas**, **refactored shared code**, or a narrow run passed but **related modules might break**.
+
+Do **not** run the full suite before every tiny edit; run tests after **substantive** changes, scoped when possible.
+
+## Commands
+
+| Goal | Command |
+|------|---------|
+| Full suite | `npm run test` |
+| Focused | `npx vitest run path/to/file.test.tsx` (adjust path as needed) |
+
+Examples:
+
+```bash
+npx vitest run src/app/dashboard/components/CreateDeckDialog.test.tsx
+npx vitest run src/app/actions/decks.test.ts
+```
