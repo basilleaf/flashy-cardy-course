@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
+import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -102,6 +105,13 @@ export function EditDeckDialog({
             )}
 
             <DialogFooter showCloseButton>
+              <Link
+                href={`/decks/${deckId}`}
+                className={cn(buttonVariants({ variant: "outline" }))}
+                onClick={() => setOpen(false)}
+              >
+                Manage deck
+              </Link>
               <Button type="submit" disabled={isPending}>
                 {isPending ? "Saving…" : "Save Changes"}
               </Button>

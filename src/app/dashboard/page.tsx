@@ -4,11 +4,14 @@ import { getDecksByUser } from "@/lib/db/queries/decks";
 import { FREE_PLAN_DECK_LIMIT } from "@/lib/deck-limits";
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { EditDeckDialog } from "@/app/decks/[deckId]/components/EditDeckDialog";
+import { Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { CreateDeckDialog } from "./components/CreateDeckDialog";
@@ -69,6 +72,22 @@ export default async function DashboardPage() {
                 {deck.description && (
                   <CardDescription>{deck.description}</CardDescription>
                 )}
+                <CardAction>
+                  <EditDeckDialog
+                    deckId={deck.id}
+                    title={deck.title}
+                    description={deck.description}
+                  >
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-zinc-400 hover:text-zinc-100"
+                      aria-label="Edit deck"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  </EditDeckDialog>
+                </CardAction>
               </CardHeader>
               <CardContent className="mt-auto flex flex-col gap-4">
                 <p className="text-xs text-zinc-500">
