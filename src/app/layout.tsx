@@ -6,6 +6,7 @@ import { ThemeProvider } from "next-themes";
 import { SignInDialog } from "@/components/SignInDialog";
 import { SignUpDialog } from "@/components/SignUpDialog";
 import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -38,19 +39,21 @@ export default function RootLayout({
             enableSystem={false}
             disableTransitionOnChange
           >
-            <header className="flex items-center justify-end px-4 py-3">
-              <Show when="signed-out">
-                <div className="flex items-center gap-2">
-                  <SignInDialog />
-                  <SignUpDialog />
-                </div>
-              </Show>
-              <Show when="signed-in">
-                <UserButton />
-              </Show>
-            </header>
-            {children}
-            <Toaster position="bottom-right" richColors closeButton />
+            <TooltipProvider>
+              <header className="flex items-center justify-end px-4 py-3">
+                <Show when="signed-out">
+                  <div className="flex items-center gap-2">
+                    <SignInDialog />
+                    <SignUpDialog />
+                  </div>
+                </Show>
+                <Show when="signed-in">
+                  <UserButton />
+                </Show>
+              </header>
+              {children}
+              <Toaster position="bottom-right" richColors closeButton />
+            </TooltipProvider>
           </ThemeProvider>
         </ClerkProvider>
       </body>

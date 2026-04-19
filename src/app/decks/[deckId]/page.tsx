@@ -5,6 +5,7 @@ import { getDeckById } from "@/lib/db/queries/decks";
 import { getCardsByDeck } from "@/lib/db/queries/cards";
 import { Button } from "@/components/ui/button";
 import { AddCardButton } from "./components/AddCardButton";
+import { GenerateCardsWithAiButton } from "./components/GenerateCardsWithAiButton";
 import { CardItem } from "./components/CardItem";
 import { DeleteDeckDialog } from "./components/DeleteDeckDialog";
 import { EditDeckDialog } from "./components/EditDeckDialog";
@@ -14,8 +15,11 @@ export default async function DeckPage({
 }: {
   params: Promise<{ deckId: string }>;
 }) {
-  const { userId } = await auth();
+  const { userId, has } = await auth();
   if (!userId) redirect("/");
+
+  const canUseAi =
+    has({ feature: "ai_flashcard_generation" }) || has({ plan: "pro" });
 
   const { deckId } = await params;
   const id = Number(deckId);
@@ -23,6 +27,10 @@ export default async function DeckPage({
 
   const deck = await getDeckById(id, userId);
   if (!deck) notFound();
+
+  const deckReadyForAi =
+    deck.title.trim().length > 0 &&
+    (deck.description?.trim() ?? "").length > 0;
 
   const cards = await getCardsByDeck(id, userId);
 
@@ -46,6 +54,11 @@ export default async function DeckPage({
           </p>
         </div>
         <div className="flex flex-wrap gap-2 shrink-0 justify-end">
+          <GenerateCardsWithAiButton
+            deckId={id}
+            canUseAi={canUseAi}
+            deckReadyForAi={deckReadyForAi}
+          />
           <EditDeckDialog
             deckId={id}
             title={deck.title}
@@ -70,7 +83,14 @@ export default async function DeckPage({
           <p className="text-sm text-zinc-500">
             Add your first card to start studying
           </p>
-          <AddCardButton deckId={id} />
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <GenerateCardsWithAiButton
+              deckId={id}
+              canUseAi={canUseAi}
+              deckReadyForAi={deckReadyForAi}
+            />
+            <AddCardButton deckId={id} />
+          </div>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

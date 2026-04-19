@@ -1,0 +1,56 @@
+---
+description: Vercel AI SDK — Anthropic Claude structured output for AI flashcard generation
+globs: src/**/*.ts
+alwaysApply: false
+---
+
+# Vercel AI + Claude (structured flashcards)
+
+AI features (especially **AI flashcard generation**) use the **[Vercel AI SDK](https://sdk.vercel.ai/docs)** (`ai` on npm) with **Anthropic Claude** via a model id such as `anthropic/claude-sonnet-4.5`. Call the model **only on the server** (Server Actions, Route Handlers, or server-only modules). Gate paid AI with Clerk **`ai_flashcard_generation`** (see `clerk-billing.mdc`).
+
+## Structured output — array of `front` / `back`
+
+Use `generateText` with `Output.object` and a **Zod** schema whose shape matches persisted cards: **`front`** and **`back`** strings. Align validation with `cardSchema` in `src/app/actions/cards.ts` (e.g. `.min(1).max(1000)` per field).
+
+For a **fixed count** `n`, constrain the array with `.length(n)` and repeat `n` in the prompt so the model targets the right batch size.
+
+```typescript
+import { generateText, Output } from "ai";
+import { z } from "zod";
+
+const CARD_COUNT = 8;
+
+const aiFlashcardBatchSchema = z.object({
+  cards: z
+    .array(
+      z.object({
+        front: z.string().min(1).max(1000),
+        back: z.string().min(1).max(1000),
+      }),
+    )
+    .length(CARD_COUNT),
+});
+
+const { output } = await generateText({
+  model: "anthropic/claude-sonnet-4.5",
+  output: Output.object({
+    schema: aiFlashcardBatchSchema,
+  }),
+  prompt: `Generate exactly ${CARD_COUNT} flashcards on the following topic. Each item must have a concise prompt or term on the front and the answer or explanation on the back.
+
+Topic: …`,
+});
+
+// output.cards — { front: string; back: string }[]
+```
+
+## Practices
+
+- **Variable count:** build the schema with `.length(count)` from a runtime `count` and interpolate `count` into the prompt; validate `count` (bounds) before calling.
+- **Secrets:** use env vars (e.g. `ANTHROPIC_API_KEY` or your provider’s variable); never expose keys to the client.
+- **Persistence:** after validation, create rows via existing query helpers in `src/lib/db/queries/cards.ts` (see `data-patterns.mdc`).
+
+## ❌ Avoid
+
+- Calling `generateText` from client components without a server boundary.
+- Schemas that omit `front`/`back` or use incompatible field names versus `cardSchema` / DB inserts.
